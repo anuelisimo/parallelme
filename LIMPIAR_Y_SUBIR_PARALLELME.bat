@@ -17,10 +17,16 @@ if exist "dev-server.err.log" del /f dev-server.err.log
 if exist ".next" rmdir /s /q .next
 if exist "src" rmdir /s /q src
 
-:: Asegurarse de que next.config.ts existe y es correcto
-echo /** @type {import('next').NextConfig} */ > next.config.ts
-echo const nextConfig = {}; >> next.config.ts
-echo module.exports = nextConfig; >> next.config.ts
+:: Asegurarse de que next.config.ts existe con formato compatible con Next 16
+if not exist "next.config.ts" (
+    (
+        echo import type { NextConfig } from "next";
+        echo.
+        echo const nextConfig: NextConfig = {};
+        echo.
+        echo export default nextConfig;
+    ) > next.config.ts
+)
 
 :: Borrar git local
 if exist ".git" (

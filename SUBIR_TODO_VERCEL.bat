@@ -37,7 +37,7 @@ if not exist "node_modules" (
     echo.
     echo Instalando dependencias...
     call npm.cmd ci --cache .npm-cache
-    if %ERRORLEVEL% NEQ 0 (
+    if errorlevel 1 (
         echo.
         echo ERROR: No se pudieron instalar las dependencias.
         pause
@@ -48,7 +48,7 @@ if not exist "node_modules" (
 echo.
 echo Probando build de produccion...
 call npm.cmd run build
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo.
     echo ERROR: El build fallo. Arregla ese error antes de subir a Vercel.
     pause
@@ -58,7 +58,7 @@ if %ERRORLEVEL% NEQ 0 (
 echo.
 echo Preparando cambios...
 git add -A
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo.
     echo ERROR: Git no pudo preparar los archivos.
     pause
@@ -73,7 +73,7 @@ if %ERRORLEVEL% EQU 0 (
     echo.
     echo Guardando cambios...
     git commit -m "Update ParallelMe for Vercel"
-    if %ERRORLEVEL% NEQ 0 (
+    if errorlevel 1 (
         echo.
         echo ERROR: Git no pudo crear el commit.
         pause
@@ -84,7 +84,7 @@ if %ERRORLEVEL% EQU 0 (
 echo.
 echo Subiendo a GitHub...
 git push -u origin main
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo.
     echo ERROR: No se pudo subir.
     echo Si GitHub abre una ventana, inicia sesion y ejecuta este BAT otra vez.

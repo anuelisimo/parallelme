@@ -4,6 +4,8 @@ import LangToggle from "@/components/LangToggle";
 import { useAppStore } from "@/lib/store";
 import { t } from "@/lib/i18n";
 import Link from "next/link";
+import { getStartedAt, getVisibleAgents } from "@/lib/timeline";
+import { useEffect, useMemo, useState } from "react";
 
 const statusDot: Record<string, string> = {
   active: "#3ec87a", unstable: "#d4607a", dormant: "#3a3a55", expanding: "#7c6ff0"
@@ -11,10 +13,27 @@ const statusDot: Record<string, string> = {
 
 export default function PeoplePage() {
   const allAgents = useAppStore((s) => s.agents);
+  const startedAt = useAppStore((s) => s.startedAt);
+  const setStartedAt = useAppStore((s) => s.setStartedAt);
   const following = useAppStore((s) => s.following);
   const lang = useAppStore((s) => s.lang);
-  const followed = allAgents.filter((a) => following.includes(a.id));
-  const others = allAgents.filter((a) => !following.includes(a.id));
+  const [timelineTick, setTimelineTick] = useState(0);
+  const visibleAgents = useMemo(
+    () => (startedAt ? getVisibleAgents(startedAt, allAgents) : []),
+    [allAgents, startedAt, timelineTick]
+  );
+  const followed = visibleAgents.filter((a) => following.includes(a.id));
+  const others = visibleAgents.filter((a) => !following.includes(a.id));
+
+  useEffect(() => {
+    if (startedAt) return;
+    setStartedAt(getStartedAt());
+  }, [setStartedAt, startedAt]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setTimelineTick((tick) => tick + 1), 30000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   return (
     <AppShell>

@@ -1,10 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AppShell from "@/components/AppShell";
-import { threads } from "@/lib/mock";
 import { agents } from "@/lib/mock";
 import { Thread, Message } from "@/lib/types";
 import { ArrowLeft } from "lucide-react";
+import { getStartedAt, getUnlockedThreads } from "@/lib/timeline";
+import { useAppStore } from "@/lib/store";
 
 export default function MessagesPage() {
   const [selected, setSelected] = useState<Thread | null>(null);
@@ -13,6 +14,24 @@ export default function MessagesPage() {
 }
 
 function ThreadList({ onSelect }: { onSelect: (t: Thread) => void }) {
+  const startedAt = useAppStore((s) => s.startedAt);
+  const setStartedAt = useAppStore((s) => s.setStartedAt);
+  const [timelineTick, setTimelineTick] = useState(0);
+  const visibleThreads = useMemo(
+    () => (startedAt ? getUnlockedThreads(startedAt) : []),
+    [startedAt, timelineTick]
+  );
+
+  useEffect(() => {
+    if (startedAt) return;
+    setStartedAt(getStartedAt());
+  }, [setStartedAt, startedAt]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setTimelineTick((tick) => tick + 1), 30000);
+    return () => window.clearInterval(interval);
+  }, []);
+
   return (
     <AppShell>
       <div style={{ padding: "52px 16px 16px" }}>
@@ -24,7 +43,14 @@ function ThreadList({ onSelect }: { onSelect: (t: Thread) => void }) {
           <h1 style={{ fontSize: 22, fontWeight: 400, color: "var(--text)" }}>mensajes</h1>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {threads.map((thread) => {
+          {visibleThreads.length === 0 && (
+            <div style={{ padding: "42px 18px", textAlign: "center", border: "0.5px solid var(--border)", borderRadius: 16, background: "rgba(19,19,30,0.55)" }}>
+              <p style={{ fontFamily: "'Lora', Georgia, serif", fontStyle: "italic", fontSize: 13, color: "var(--ghost)", lineHeight: 1.6 }}>
+                Todavia no llego nada.
+              </p>
+            </div>
+          )}
+          {visibleThreads.map((thread) => {
             const agent = agents.find((a) => a.id === thread.agentId);
             const isSystem = thread.id === "t-system";
             const isObserver = thread.id === "t-observer";

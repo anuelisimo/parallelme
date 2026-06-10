@@ -12,7 +12,6 @@ export default function BottomNav() {
     { href: "/", key: 'nav_feed' as const },
     { href: "/people", key: 'nav_people' as const },
     { href: "/messages", key: 'nav_messages' as const },
-    { href: "/create", key: 'nav_create' as const },
   ];
 
   return (

@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { agents as fallbackAgents, signals } from "@/lib/mock";
 import { useAppStore } from "@/lib/store";
 import { Agent, Signal } from "@/lib/types";
+import { getNextEvent, getStartedAt, getUnlockedSignals, resolveSignalAgent } from "@/lib/timeline";
 
 const statusDot: Record<string, string> = {
   active: "#3ec87a",
@@ -90,22 +90,37 @@ function SignalAtmosphere({ signal, agent }: { signal: Signal; agent: Agent }) {
   );
 }
 
-function deckSignals(allAgents: Agent[]) {
-  return signals
+function deckSignals(allAgents: Agent[], startedAt?: number) {
+  const visibleSignals = startedAt ? getUnlockedSignals(startedAt) : [];
+  return visibleSignals
     .map((signal) => ({
       signal,
-      agent: allAgents.find((agent) => agent.id === signal.agentId) ?? fallbackAgents.find((agent) => agent.id === signal.agentId),
+      agent: resolveSignalAgent(signal, allAgents),
     }))
     .filter((entry): entry is { signal: Signal; agent: Agent } => Boolean(entry.agent));
 }
 
 export default function SignalDeck() {
   const allAgents = useAppStore((state) => state.agents);
+  const startedAt = useAppStore((state) => state.startedAt);
+  const setStartedAt = useAppStore((state) => state.setStartedAt);
   const recordView = useAppStore((state) => state.recordView);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [timelineTick, setTimelineTick] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const recordedRef = useRef<Set<string>>(new Set());
-  const entries = useMemo(() => deckSignals(allAgents), [allAgents]);
+  const entries = useMemo(() => deckSignals(allAgents, startedAt), [allAgents, startedAt, timelineTick]);
+  const nextEvent = useMemo(() => (startedAt ? getNextEvent(startedAt) : undefined), [startedAt, timelineTick]);
+
+  useEffect(() => {
+    if (startedAt) return;
+    setStartedAt(getStartedAt());
+  }, [setStartedAt, startedAt]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setTimelineTick((tick) => tick + 1), 30000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const entry = entries[activeIndex];
@@ -255,6 +270,54 @@ export default function SignalDeck() {
             </article>
           );
         })}
+        <section
+          style={{
+            minHeight: "calc(100svh - 80px)",
+            scrollSnapAlign: "start",
+            display: "grid",
+            placeItems: "center",
+            padding: "32px 28px",
+            textAlign: "center",
+            background:
+              "radial-gradient(circle at 50% 18%, rgba(124,111,240,0.12), transparent 34%), linear-gradient(180deg, #08080d, #050508)",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                width: 46,
+                height: 1,
+                margin: "0 auto 22px",
+                background: "var(--whisper)",
+              }}
+            />
+            <p
+              style={{
+                fontFamily: "'Lora', Georgia, serif",
+                fontStyle: "italic",
+                fontSize: 15,
+                lineHeight: 1.7,
+                color: "var(--ghost)",
+              }}
+            >
+              {nextEvent ? "No hay mas senales por ahora." : "La linea quedo quieta."}
+            </p>
+            {nextEvent && (
+              <p
+                style={{
+                  marginTop: 12,
+                  fontFamily: "'DM Mono', monospace",
+                  fontSize: 10,
+                  letterSpacing: "0.12em",
+                  color: "var(--whisper)",
+                  textTransform: "lowercase",
+                }}
+              >
+                algo vuelve despues
+              </p>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   );

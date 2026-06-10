@@ -6,12 +6,14 @@ import { Lang } from "./i18n";
 interface AppStore {
   agents: Agent[];
   userProfile: UserProfile;
+  startedAt?: number;
   following: string[];
   viewCounts: Record<string, number>;
   glitchSeen: boolean;
   lang: Lang;
 
   setLang: (lang: Lang) => void;
+  setStartedAt: (startedAt: number) => void;
   followAgent: (id: string) => void;
   recordView: (id: string) => void;
   updateRitual: (update: Partial<UserProfile>) => void;
@@ -22,12 +24,14 @@ interface AppStore {
 export const useAppStore = create<AppStore>((set) => ({
   agents: initialAgents,
   userProfile: { ritualComplete: false },
+  startedAt: undefined,
   following: [],
   viewCounts: {},
   glitchSeen: false,
   lang: 'es',
 
   setLang: (lang) => set({ lang }),
+  setStartedAt: (startedAt) => set({ startedAt }),
 
   followAgent: (id) => set((s) => ({
     following: s.following.includes(id)

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { Agent, Signal } from "@/lib/types";
 import { getNextEvent, getStartedAt, getUnlockedSignals, resolveSignalAgent } from "@/lib/timeline";
+import { getAttendedCharacter, registerSignalView, registerVisit } from "@/lib/presence";
 
 const statusDot: Record<string, string> = {
   active: "#3ec87a",
@@ -90,13 +91,30 @@ function SignalAtmosphere({ signal, agent }: { signal: Signal; agent: Agent }) {
   );
 }
 
+function getSignalToAgentMap(visibleSignals: Signal[]) {
+  return Object.fromEntries(visibleSignals.map((signal) => [signal.id, signal.agentId]));
+}
+
+function applyEcho(signal: Signal, attendedAgentId: string | null): Signal {
+  if (!attendedAgentId || signal.agentId !== attendedAgentId || !signal.echoVariant) return signal;
+  return {
+    ...signal,
+    text: signal.echoVariant,
+    subtext: signal.echoSubtext ?? signal.subtext,
+  };
+}
+
 function deckSignals(allAgents: Agent[], startedAt?: number) {
   const visibleSignals = startedAt ? getUnlockedSignals(startedAt) : [];
+  const attendedAgentId = getAttendedCharacter(getSignalToAgentMap(visibleSignals));
   return visibleSignals
-    .map((signal) => ({
-      signal,
-      agent: resolveSignalAgent(signal, allAgents),
-    }))
+    .map((baseSignal) => {
+      const signal = applyEcho(baseSignal, attendedAgentId);
+      return {
+        signal,
+        agent: resolveSignalAgent(signal, allAgents),
+      };
+    })
     .filter((entry): entry is { signal: Signal; agent: Agent } => Boolean(entry.agent));
 }
 
@@ -109,6 +127,8 @@ export default function SignalDeck() {
   const [timelineTick, setTimelineTick] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const recordedRef = useRef<Set<string>>(new Set());
+  const activeSignalIdRef = useRef<string | null>(null);
+  const activeSignalStartedAtRef = useRef<number>(Date.now());
   const entries = useMemo(() => deckSignals(allAgents, startedAt), [allAgents, startedAt, timelineTick]);
   const nextEvent = useMemo(() => (startedAt ? getNextEvent(startedAt) : undefined), [startedAt, timelineTick]);
 
@@ -118,9 +138,32 @@ export default function SignalDeck() {
   }, [setStartedAt, startedAt]);
 
   useEffect(() => {
+    registerVisit();
+  }, []);
+
+  useEffect(() => {
     const interval = window.setInterval(() => setTimelineTick((tick) => tick + 1), 30000);
     return () => window.clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const activeEntry = entries[activeIndex];
+    const nextSignalId = activeEntry?.signal.id ?? null;
+    const now = Date.now();
+
+    if (activeSignalIdRef.current) {
+      registerSignalView(activeSignalIdRef.current, now - activeSignalStartedAtRef.current);
+    }
+
+    activeSignalIdRef.current = nextSignalId;
+    activeSignalStartedAtRef.current = now;
+
+    return () => {
+      if (!activeSignalIdRef.current) return;
+      registerSignalView(activeSignalIdRef.current, Date.now() - activeSignalStartedAtRef.current);
+      activeSignalIdRef.current = null;
+    };
+  }, [activeIndex, entries]);
 
   useEffect(() => {
     const entry = entries[activeIndex];

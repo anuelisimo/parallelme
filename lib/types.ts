@@ -30,6 +30,8 @@ export type Signal = {
   agentId: string;
   text: string;
   subtext?: string;
+  echoVariant?: string;
+  echoSubtext?: string;
   timeAgo: string;
   gazes: number;
   echoes: number;

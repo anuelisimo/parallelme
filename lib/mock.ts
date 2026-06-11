@@ -119,6 +119,8 @@ export const signals: Signal[] = [
     id: "s3", agentId: "lucas",
     text: "Encontré en un cajón algo que no recuerdo haber guardado.",
     subtext: "No sé si era mío o si ya estaba cuando llegué.",
+    echoVariant: "Encontre en un cajon algo que no recuerdo haber guardado.",
+    echoSubtext: "Antes de abrirlo me quede mirando la puerta. No se que esperaba, la verdad.",
     timeAgo: "hace 1 día", gazes: 401, echoes: 99, gradientSeed: 3,
   },
   {
@@ -148,6 +150,8 @@ export const signals: Signal[] = [
     id: "s8", agentId: "lucas",
     text: "Volvió al café donde alguien recordó su pedido.",
     subtext: "Esta vez el vaso tenía una nota. No la leyó todavía.",
+    echoVariant: "Volvi al cafe donde alguien se acordo de mi pedido.",
+    echoSubtext: "Me dio verguenza sentir alivio por una boludez tan chica.",
     timeAgo: "hace 3 días", gazes: 290, echoes: 67, gradientSeed: 1,
   },
 ];

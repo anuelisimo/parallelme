@@ -16,9 +16,9 @@ const statusDot: Record<string, string> = {
 };
 
 const atmosphereShapes = [
-  { left: "14%", top: "18%", width: "34%", height: "46%", radius: 4, opacity: 0.1 },
-  { left: "58%", top: "12%", width: "22%", height: "58%", radius: 999, opacity: 0.08 },
-  { left: "22%", top: "62%", width: "52%", height: "1px", radius: 0, opacity: 0.16 },
+  { left: "14%", top: "18%", width: "34%", height: "46%", radius: 4, opacity: 0.04 },
+  { left: "58%", top: "12%", width: "22%", height: "58%", radius: 999, opacity: 0.03 },
+  { left: "22%", top: "62%", width: "52%", height: "1px", radius: 0, opacity: 0.07 },
 ];
 
 function SignalAtmosphere({ signal, agent }: { signal: Signal; agent: Agent }) {
@@ -53,8 +53,8 @@ function SignalAtmosphere({ signal, agent }: { signal: Signal; agent: Agent }) {
           sizes="(max-width: 480px) 100vw, 480px"
           style={{
             objectFit: "cover",
-            opacity: 0.72,
-            filter: "saturate(0.78) contrast(1.06) brightness(0.78)",
+            opacity: 0.95,
+            filter: "saturate(0.96) contrast(1.03) brightness(0.96)",
           }}
         />
       )}
@@ -91,7 +91,7 @@ function SignalAtmosphere({ signal, agent }: { signal: Signal; agent: Agent }) {
           inset: 0,
           backgroundImage:
             "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 280 280' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.16'/%3E%3C/svg%3E\")",
-          opacity: 0.28,
+          opacity: signal.imageSrc ? 0.13 : 0.28,
           mixBlendMode: "overlay",
         }}
       />
@@ -100,9 +100,8 @@ function SignalAtmosphere({ signal, agent }: { signal: Signal; agent: Agent }) {
           position: "absolute",
           inset: 0,
           background: signal.imageSrc
-            ? `radial-gradient(circle at 22% 18%, ${agent.accentColor}30 0%, transparent 34%),
-              linear-gradient(to bottom, rgba(8,8,13,0.2), rgba(8,8,13,0.38) 44%, rgba(8,8,13,0.9) 100%),
-              linear-gradient(90deg, rgba(8,8,13,0.78), transparent 48%, rgba(8,8,13,0.52))`
+            ? `linear-gradient(to bottom, rgba(8,8,13,0.04), transparent 28%, rgba(8,8,13,0.18) 58%, rgba(8,8,13,0.74) 100%),
+              linear-gradient(90deg, rgba(8,8,13,0.28), transparent 42%, rgba(8,8,13,0.12))`
             : "linear-gradient(to bottom, rgba(8,8,13,0.08), rgba(8,8,13,0.34) 48%, rgba(8,8,13,0.86))",
         }}
       />
@@ -281,7 +280,7 @@ export default function SignalDeck() {
                     lineHeight: 1.45,
                     color: "var(--text)",
                     textWrap: "balance",
-                    textShadow: "0 12px 34px rgba(0,0,0,0.65)",
+                    textShadow: "0 3px 18px rgba(0,0,0,0.9), 0 12px 34px rgba(0,0,0,0.48)",
                   }}
                 >
                   {signal.text}
@@ -296,6 +295,7 @@ export default function SignalDeck() {
                       color: "var(--text-dim)",
                       marginTop: 12,
                       maxWidth: 360,
+                      textShadow: "0 2px 14px rgba(0,0,0,0.85)",
                     }}
                   >
                     {signal.subtext}

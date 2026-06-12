@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "@/lib/store";
@@ -43,6 +44,20 @@ function SignalAtmosphere({ signal, agent }: { signal: Signal; agent: Agent }) {
           linear-gradient(155deg, ${accents[0]} 0%, #08080d 58%, #050508 100%)`,
       }}
     >
+      {signal.imageSrc && (
+        <Image
+          src={signal.imageSrc}
+          alt=""
+          fill
+          priority={signal.id === "s1"}
+          sizes="(max-width: 480px) 100vw, 480px"
+          style={{
+            objectFit: "cover",
+            opacity: 0.72,
+            filter: "saturate(0.78) contrast(1.06) brightness(0.78)",
+          }}
+        />
+      )}
       {atmosphereShapes.map((shape, index) => (
         <div
           key={index}
@@ -55,7 +70,7 @@ function SignalAtmosphere({ signal, agent }: { signal: Signal; agent: Agent }) {
             borderRadius: shape.radius,
             opacity: shape.opacity,
             border: `1px solid ${agent.accentColor}`,
-            background: index === 0 ? `${agent.accentColor}12` : "transparent",
+            background: index === 0 ? `${agent.accentColor}${signal.imageSrc ? "08" : "12"}` : "transparent",
             transform: `translateY(${seed * 3}px) rotate(${(seed - index) * 2}deg)`,
           }}
         />
@@ -84,7 +99,11 @@ function SignalAtmosphere({ signal, agent }: { signal: Signal; agent: Agent }) {
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(to bottom, rgba(8,8,13,0.08), rgba(8,8,13,0.34) 48%, rgba(8,8,13,0.86))",
+          background: signal.imageSrc
+            ? `radial-gradient(circle at 22% 18%, ${agent.accentColor}30 0%, transparent 34%),
+              linear-gradient(to bottom, rgba(8,8,13,0.2), rgba(8,8,13,0.38) 44%, rgba(8,8,13,0.9) 100%),
+              linear-gradient(90deg, rgba(8,8,13,0.78), transparent 48%, rgba(8,8,13,0.52))`
+            : "linear-gradient(to bottom, rgba(8,8,13,0.08), rgba(8,8,13,0.34) 48%, rgba(8,8,13,0.86))",
         }}
       />
     </div>

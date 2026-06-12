@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import AtmosphericPlaceholder from "@/components/AtmosphericPlaceholder";
@@ -29,6 +30,7 @@ export default function PersonPage() {
   );
 
   const personSignals = signals.filter((s) => s.agentId === id);
+  const heroSignal = personSignals.find((s) => s.imageSrc);
   const showPerturbation = agent._perturbation > 40;
   const perturbationText = lang === 'es'
     ? (agent._perturbation > 80 ? "Hoy el día tuvo una textura diferente." : "Pedí dos cafés sin darme cuenta.")
@@ -38,7 +40,33 @@ export default function PersonPage() {
     <AppShell>
       <div>
         <div style={{ position: "relative" }}>
-          <AtmosphericPlaceholder seed={agent._tension % 6} height={280} />
+          {heroSignal?.imageSrc ? (
+            <div style={{ height: 280, position: "relative", overflow: "hidden" }}>
+              <Image
+                src={heroSignal.imageSrc}
+                alt=""
+                fill
+                priority
+                sizes="(max-width: 480px) 100vw, 480px"
+                style={{
+                  objectFit: "cover",
+                  opacity: 0.74,
+                  filter: "saturate(0.78) contrast(1.06) brightness(0.78)",
+                }}
+              />
+              <div
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: `radial-gradient(circle at 20% 20%, ${agent.accentColor}30 0%, transparent 34%),
+                    linear-gradient(to bottom, rgba(8,8,13,0.08), rgba(8,8,13,0.48) 58%, var(--void) 100%)`,
+                }}
+              />
+            </div>
+          ) : (
+            <AtmosphericPlaceholder seed={agent._tension % 6} height={280} />
+          )}
           <button onClick={() => router.back()} style={{ position: "absolute", top: 16, left: 16, background: "rgba(8,8,13,0.7)", border: "none", borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", backdropFilter: "blur(8px)" }}>
             <ArrowLeft size={16} color="var(--text-dim)" />
           </button>

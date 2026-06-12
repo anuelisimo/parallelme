@@ -17,9 +17,9 @@ export const timeline: TimelineEvent[] = [
   { id: "drawer", unlockAfterMinutes: 8, signalIds: ["s3"], threadIds: ["t-lucas"] },
   { id: "plans", unlockAfterMinutes: 30, signalIds: ["s4"] },
   { id: "silence", unlockAfterMinutes: 90, signalIds: ["s5"], threadIds: ["t-observer"] },
-  { id: "taxi", unlockAfterMinutes: 180, signalIds: ["s7"], threadIds: ["t-camila"] },
+  { id: "coast", unlockAfterMinutes: 180, signalIds: ["s7"], threadIds: ["t-ines"] },
   { id: "coffee", unlockAfterMinutes: 360, signalIds: ["s8"], threadIds: ["t-system"] },
-  { id: "bent", unlockAfterMinutes: 720, signalIds: ["s6"] },
+  { id: "felix", unlockAfterMinutes: 720, signalIds: ["s6"] },
 ];
 
 function getNow() {

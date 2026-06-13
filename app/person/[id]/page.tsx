@@ -1,12 +1,15 @@
 "use client";
+
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import AtmosphericPlaceholder from "@/components/AtmosphericPlaceholder";
-import { useAppStore } from "@/lib/store";
-import { signals } from "@/lib/mock";
+import CharacterMark from "@/components/CharacterMark";
+import { getCharacterIdentity } from "@/lib/characterIdentity";
 import { t } from "@/lib/i18n";
-import { ArrowLeft } from "lucide-react";
+import { signals } from "@/lib/mock";
+import { useAppStore } from "@/lib/store";
 
 export default function PersonPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,21 +22,24 @@ export default function PersonPage() {
   const agent = agents.find((a) => a.id === id);
   const isFollowing = following.includes(id);
 
-  if (!agent) return (
-    <AppShell>
-      <div style={{ padding: "80px 20px", textAlign: "center" }}>
-        <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: "var(--ghost)" }}>
-          {lang === 'es' ? 'Esta línea no existe.' : 'This line does not exist.'}
-        </p>
-      </div>
-    </AppShell>
-  );
+  if (!agent) {
+    return (
+      <AppShell>
+        <div style={{ padding: "80px 20px", textAlign: "center" }}>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: "var(--ghost)" }}>
+            {lang === "es" ? "Esta linea no existe." : "This line does not exist."}
+          </p>
+        </div>
+      </AppShell>
+    );
+  }
 
+  const identity = getCharacterIdentity(agent.id);
   const personSignals = signals.filter((s) => s.agentId === id);
   const heroSignal = personSignals.find((s) => s.imageSrc);
   const showPerturbation = agent._perturbation > 40;
-  const perturbationText = lang === 'es'
-    ? (agent._perturbation > 80 ? "Hoy el día tuvo una textura diferente." : "Pedí dos cafés sin darme cuenta.")
+  const perturbationText = lang === "es"
+    ? (agent._perturbation > 80 ? "Hoy el dia tuvo una textura diferente." : "Pedi dos cafes sin darme cuenta.")
     : (agent._perturbation > 80 ? "Today had a different texture." : "I ordered two coffees without realizing.");
 
   return (
@@ -70,21 +76,27 @@ export default function PersonPage() {
             <ArrowLeft size={16} color="var(--text-dim)" />
           </button>
           <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "40px 20px 20px", background: "linear-gradient(transparent, var(--void))" }}>
-            <h1 style={{ fontSize: 28, fontWeight: 400, color: "var(--text)", marginBottom: 4 }}>{agent.name}</h1>
-            <p style={{ fontSize: 13, color: "var(--ghost)" }}>{agent.city} · {agent.occupation}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
+              <CharacterMark agent={agent} size={42} />
+              <div>
+                <h1 style={{ fontSize: 28, fontWeight: 400, color: "var(--text)", marginBottom: 2 }}>{agent.name}</h1>
+                <p style={{ fontSize: 11, color: agent.accentColor, ...identity.metaStyle }}>{identity.shortLine}</p>
+              </div>
+            </div>
+            <p style={{ fontSize: 13, color: "var(--ghost)" }}>{agent.city} / {agent.occupation}</p>
           </div>
         </div>
 
         <div style={{ padding: "20px 16px" }}>
           <div style={{ background: "var(--card)", border: "0.5px solid var(--border)", borderRadius: 16, padding: "16px", marginBottom: 16 }}>
-            <p style={{ fontFamily: "'Lora', Georgia, serif", fontStyle: "italic", fontSize: 14, lineHeight: 1.7, color: "var(--text-dim)" }}>
+            <p style={{ ...identity.subvoiceStyle, fontSize: 14, lineHeight: 1.7, color: "var(--text-dim)", marginTop: 0 }}>
               {agent.bio}
             </p>
           </div>
 
           {showPerturbation && (
             <div style={{ background: `${agent.accentColor}08`, border: `0.5px solid ${agent.accentColor}25`, borderRadius: 16, padding: "14px 16px", marginBottom: 16 }}>
-              <p style={{ fontFamily: "'Lora', Georgia, serif", fontStyle: "italic", fontSize: 13, lineHeight: 1.6, color: "var(--ghost)" }}>
+              <p style={{ ...identity.subvoiceStyle, fontSize: 13, lineHeight: 1.6, color: "var(--ghost)", marginTop: 0 }}>
                 "{perturbationText}"
               </p>
             </div>
@@ -94,21 +106,24 @@ export default function PersonPage() {
             onClick={() => { followAgent(id); recordView(id); }}
             style={{ width: "100%", padding: "14px", background: isFollowing ? "transparent" : agent.accentColor, border: `1px solid ${isFollowing ? agent.accentColor + "60" : agent.accentColor}`, borderRadius: 14, cursor: "pointer", fontSize: 13, fontWeight: 500, color: isFollowing ? agent.accentColor : "#08080d", marginBottom: 24, transition: "all 0.2s" }}
           >
-            {isFollowing ? t(lang, 'person_unfollow') : t(lang, 'person_follow')}
+            {isFollowing ? t(lang, "person_unfollow") : t(lang, "person_follow")}
           </button>
 
           {personSignals.length > 0 && (
             <div>
               <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--whisper)", letterSpacing: "0.1em", marginBottom: 16 }}>
-                {t(lang, 'person_signals')}
+                {t(lang, "person_signals")}
               </div>
               {personSignals.map((sig) => (
-                <div key={sig.id} style={{ borderLeft: "2px solid var(--border)", paddingLeft: 16, marginBottom: 20 }}>
-                  <p style={{ fontFamily: "'Lora', Georgia, serif", fontStyle: "italic", fontSize: 14, lineHeight: 1.7, color: "var(--text-dim)", marginBottom: sig.subtext ? 4 : 0 }}>
+                <div key={sig.id} style={{ borderLeft: `2px solid ${agent.accentColor}55`, paddingLeft: 16, marginBottom: 20 }}>
+                  <div style={{ color: agent.accentColor, ...identity.metaStyle, fontSize: 10, marginBottom: 7 }}>
+                    {sig.continuity ?? sig.chapter ?? identity.shortLine}
+                  </div>
+                  <p style={{ ...identity.subvoiceStyle, fontSize: 14, lineHeight: 1.7, color: "var(--text-dim)", marginTop: 0, marginBottom: sig.subtext ? 4 : 0 }}>
                     {sig.text}
                   </p>
                   {sig.subtext && (
-                    <p style={{ fontFamily: "'Lora', Georgia, serif", fontStyle: "italic", fontSize: 12, color: "var(--ghost)", lineHeight: 1.5 }}>
+                    <p style={{ ...identity.subvoiceStyle, fontSize: 12, color: "var(--ghost)", lineHeight: 1.5, marginTop: 0 }}>
                       {sig.subtext}
                     </p>
                   )}

@@ -3,8 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import CharacterMark from "@/components/CharacterMark";
 import { useAppStore } from "@/lib/store";
 import { Agent, Signal } from "@/lib/types";
+import { getCharacterIdentity } from "@/lib/characterIdentity";
 import { getNextEvent, getStartedAt, getUnlockedSignals, resolveSignalAgent } from "@/lib/timeline";
 import { getAttendedCharacter, registerSignalView, registerVisit } from "@/lib/presence";
 
@@ -211,6 +213,7 @@ export default function SignalDeck() {
       >
         {entries.map(({ signal, agent }, index) => {
           const active = index === activeIndex;
+          const identity = getCharacterIdentity(agent.id);
           return (
             <article
               key={signal.id}
@@ -230,29 +233,14 @@ export default function SignalDeck() {
               <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                 <Link href={`/person/${agent.id}`} style={{ minWidth: 0, textDecoration: "none" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "50%",
-                        display: "grid",
-                        placeItems: "center",
-                        color: agent.accentColor,
-                        border: `1px solid ${agent.accentColor}52`,
-                        background: "rgba(8,8,13,0.35)",
-                        fontSize: 13,
-                        fontWeight: 500,
-                      }}
-                    >
-                      {agent.name[0]}
-                    </div>
+                    <CharacterMark agent={agent} />
                     <div style={{ minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
                         <span style={{ color: "var(--text)", fontSize: 14, fontWeight: 500 }}>{agent.name}</span>
                         <span style={{ width: 5, height: 5, borderRadius: "50%", background: statusDot[agent.status] }} />
                       </div>
-                      <div style={{ color: "var(--ghost)", fontFamily: "'DM Mono', monospace", fontSize: 11, marginTop: 2 }}>
-                        {agent.city} / {signal.timeAgo}
+                      <div style={{ color: "var(--ghost)", ...identity.metaStyle, fontSize: 11, marginTop: 2 }}>
+                        {signal.chapter ?? `${agent.city} / ${signal.timeAgo}`}
                       </div>
                     </div>
                   </div>
@@ -269,18 +257,28 @@ export default function SignalDeck() {
                     height: 1,
                     background: agent.accentColor,
                     opacity: 0.55,
-                    marginBottom: 24,
+                    marginBottom: 14,
                   }}
                 />
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    color: agent.accentColor,
+                    ...identity.metaStyle,
+                    fontSize: 10,
+                    letterSpacing: agent.id === "ines" ? 0 : "0.06em",
+                    textShadow: "0 2px 12px rgba(0,0,0,0.8)",
+                    marginBottom: 14,
+                  }}
+                >
+                  <span>{identity.symbol}</span>
+                  <span>{signal.continuity ?? identity.shortLine}</span>
+                </div>
                 <p
                   style={{
-                    fontFamily: "'Lora', Georgia, serif",
-                    fontStyle: "italic",
-                    fontSize: 22,
-                    lineHeight: 1.45,
-                    color: "var(--text)",
-                    textWrap: "balance",
-                    textShadow: "0 3px 18px rgba(0,0,0,0.9), 0 12px 34px rgba(0,0,0,0.48)",
+                    ...identity.voiceStyle,
                   }}
                 >
                   {signal.text}
@@ -288,14 +286,7 @@ export default function SignalDeck() {
                 {signal.subtext && (
                   <p
                     style={{
-                      fontFamily: "'Lora', Georgia, serif",
-                      fontStyle: "italic",
-                      fontSize: 15,
-                      lineHeight: 1.65,
-                      color: "var(--text-dim)",
-                      marginTop: 12,
-                      maxWidth: 360,
-                      textShadow: "0 2px 14px rgba(0,0,0,0.85)",
+                      ...identity.subvoiceStyle,
                     }}
                   >
                     {signal.subtext}

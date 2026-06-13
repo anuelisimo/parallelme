@@ -34,6 +34,8 @@ export type Signal = {
   echoSubtext?: string;
   imageSrc?: string;
   imageAlt?: string;
+  chapter?: string;
+  continuity?: string;
   timeAgo: string;
   gazes: number;
   echoes: number;

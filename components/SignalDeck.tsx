@@ -182,6 +182,7 @@ export default function SignalDeck() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const horizontalRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const recordedRef = useRef<Set<string>>(new Set());
+  const touchStartRef = useRef<{ x: number; y: number; agentId: string; index: number; signalCount: number } | null>(null);
   const lines = useMemo(() => deckLines(allAgents, startedAt), [allAgents, startedAt, timelineTick]);
   const nextEvent = useMemo(() => (startedAt ? getNextEvent(startedAt) : undefined), [startedAt, timelineTick]);
   const activeLine = lines[activeLineIndex];
@@ -299,6 +300,42 @@ export default function SignalDeck() {
     }));
   }
 
+  function handlePointerStart(agentId: string, signalCount: number, index: number, event: React.PointerEvent<HTMLDivElement>) {
+    if (event.pointerType === "mouse" || signalCount < 2) return;
+    touchStartRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      agentId,
+      index,
+      signalCount,
+    };
+  }
+
+  function handlePointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    const start = touchStartRef.current;
+    if (!start) return;
+
+    const deltaX = event.clientX - start.x;
+    const deltaY = event.clientY - start.y;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+
+    if (absY > 18 && absY > absX) {
+      touchStartRef.current = null;
+      return;
+    }
+
+    if (absX < 42 || absX < absY * 1.15) return;
+
+    event.preventDefault();
+    scrollToSignal(start.agentId, start.index + (deltaX < 0 ? 1 : -1));
+    touchStartRef.current = null;
+  }
+
+  function handlePointerEnd() {
+    touchStartRef.current = null;
+  }
+
   return (
     <div style={{ position: "relative", minHeight: "calc(100svh - 80px)", background: "#08080d" }}>
       <div
@@ -406,6 +443,10 @@ export default function SignalDeck() {
                   horizontalRefs.current[agent.id] = node;
                 }}
                 onScroll={(event) => handleHorizontalScroll(agent.id, signals.length, event)}
+                onPointerDown={(event) => handlePointerStart(agent.id, signals.length, lineSignalIndex, event)}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerEnd}
+                onPointerCancel={handlePointerEnd}
                 style={{
                   position: "absolute",
                   inset: 0,
@@ -415,6 +456,9 @@ export default function SignalDeck() {
                   scrollSnapType: "x mandatory",
                   scrollBehavior: "smooth",
                   scrollbarWidth: "none",
+                  touchAction: "pan-y",
+                  overscrollBehaviorX: "contain",
+                  WebkitOverflowScrolling: "touch",
                 }}
               >
                 {signals.map((signal, signalIndex) => (
